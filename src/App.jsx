@@ -17,7 +17,7 @@ import AdminLogin from "./login/AdminLogin";
 import AdminSignup from "./signin/AdminSignup";
 import AdminCart from "./cart/AdminCart";
 import Map from "./Map";
-import Products from "./products/products";
+import Products from "./products/Products";
 
 function App() {
   const [cart, setCart] = useState([]);
