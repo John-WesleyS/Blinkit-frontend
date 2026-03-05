@@ -14,7 +14,7 @@ const Login = () => {
 
   const onSubmit = async (data) => {
     try {
-      const res = await axios.post(`${import.meta.env.VITE_API_URL}/login`, data);
+      const res = await axios.post(`${import.meta.env.VITE_API_URL}/UserLogin`, data);
       localStorage.setItem("token", res.data.token);
       navigate("/home");
     } catch (err) {
