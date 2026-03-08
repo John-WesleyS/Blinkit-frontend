@@ -38,7 +38,9 @@ const Body = ({ setCart }) => {
     document.title = "Home Page";
     const fetchProducts = async () => {
       try {
-        const res = await axios.get(`${import.meta.env.VITE_API_URL}/AdminCart`);
+        const res = await axios.get(
+          `${import.meta.env.VITE_API_URL}/AdminCart`,
+        );
         setProducts(res.data);
         console.log(res.data);
       } catch (e) {
@@ -162,7 +164,8 @@ const Body = ({ setCart }) => {
           target="_self"
           style={{
             width: "100%",
-            height: "275px",
+            maxHeight: "300px",
+            objectFit: "cover",
             cursor: "pointer",
             marginBottom: "10px",
           }}
@@ -171,19 +174,19 @@ const Body = ({ setCart }) => {
       <div
         style={{
           display: "flex",
-          justifyContent: "flex-start",
-          alignItems: "flex-start",
+          flexWrap: "wrap",
+          justifyContent: "center",
+          alignItems: "center",
           marginTop: "20px",
           gap: "20px",
         }}
       >
-        
-          <img
-            src="https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=720/layout-engine/2023-07/pharmacy-WEB.jpg"
-            alt="pharmacy"
-            style={{ width: "350px", height: "200px", cursor: "pointer" }}
-          />
-        
+        <img
+          src="https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=720/layout-engine/2023-07/pharmacy-WEB.jpg"
+          alt="pharmacy"
+          style={{ width: "350px", height: "200px", cursor: "pointer" }}
+        />
+
         <img
           src="https://cdn.grofers.com/cdn-cgi/image/f=auto,fit=scale-down,q=70,metadata=none,w=720/layout-engine/2026-01/pet_crystal_WEB-1.png"
           alt="dogFood"
@@ -231,14 +234,14 @@ const Body = ({ setCart }) => {
           />
         ))}
       </div>
-      
+
       <div
         style={{
           display: "flex",
           gap: "20px",
           flexWrap: "wrap",
           justifyContent: "space-evenly",
-          padding: "20px 0",
+          padding: "20px 0 120px 0", // extra bottom padding
         }}
       >
         {products.map((item) => (

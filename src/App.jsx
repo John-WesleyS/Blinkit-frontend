@@ -8,7 +8,7 @@ import Cart from "./cart/Cart";
 import Dashboard from "./dashboard/Dashboard";
 import UserIntro from "./HomePage/UserIntro";
 import CheckOutPage from "./cart/CheckOutPage";
-// import './index.css'
+import './index.css'
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Delivery from "./cart/Delivery";
@@ -18,6 +18,7 @@ import AdminSignup from "./signin/AdminSignup";
 import AdminCart from "./cart/AdminCart";
 import Map from "./Map";
 import Products from "./products/Products";
+import ChatBot from "./dashboard/ChatBot";
 
 function App() {
   const [cart, setCart] = useState([]);
@@ -46,6 +47,7 @@ function App() {
           }
         />
         <Route path="/dashboard" element={<Dashboard></Dashboard>} />
+        {/* <Route path="/ChatBot" element={<ChatBot />} /> */}
         <Route path="/" element={<UserIntro></UserIntro>} />
         <Route
           path="/CheckOutPage"
@@ -62,7 +64,9 @@ function App() {
           path="/products/:category"
           element={<Products setCart={setCart} />}
         />
+
       </Routes>
+       <ChatBot />
       <ToastContainer style={{ zIndex: 9999 }} />
     </>
   );
