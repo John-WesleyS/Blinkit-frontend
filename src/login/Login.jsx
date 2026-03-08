@@ -101,7 +101,7 @@ const Login = () => {
         onMouseLeave={() => setTransition(false)}
       >
         <form style={{ width: "100%" }} onSubmit={handleSubmit(onSubmit)}>
-          
+
           {/* Email */}
           <label style={labelStyle}>
             Email:
