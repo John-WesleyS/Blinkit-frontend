@@ -37,6 +37,13 @@ const UserAdminChat = () => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      sendMessage();
+    }
+  };
+
   const sendMessage = () => {
     if (!input.trim()) return;
 
@@ -47,7 +54,7 @@ const UserAdminChat = () => {
     };
 
     socket.emit("sendMessage", msg);
-    setMessages((prev) => [...prev, msg]);
+    // setMessages((prev) => [...prev, msg]);
     setInput("");
   };
 
@@ -57,7 +64,6 @@ const UserAdminChat = () => {
 
   return (
     <div className="flex h-screen bg-gradient-to-br from-gray-100 to-gray-200">
-
       {/* Sidebar */}
       <div className="hidden md:flex w-1/4 bg-white/70 backdrop-blur-lg border-r shadow-lg p-5">
         <div className="w-full">
@@ -71,7 +77,6 @@ const UserAdminChat = () => {
 
       {/* Chat Section */}
       <div className="flex flex-col flex-1">
-
         {/* Header */}
         <div className="bg-white/70 backdrop-blur-lg shadow-md px-6 py-4 flex items-center justify-between">
           <div>
@@ -91,7 +96,6 @@ const UserAdminChat = () => {
 
         {/* Messages */}
         <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4 scrollbar-thin scrollbar-thumb-gray-400">
-
           {messages.map((msg, index) => {
             const isMe = msg.senderId === senderId;
 
@@ -124,7 +128,6 @@ const UserAdminChat = () => {
 
         {/* Input */}
         <div className="bg-white/80 backdrop-blur-lg p-4 flex items-center gap-3 border-t">
-
           <input
             type="text"
             value={input}
@@ -132,6 +135,7 @@ const UserAdminChat = () => {
               setInput(e.target.value);
               handleTyping();
             }}
+             onKeyDown={handleKeyPress}
             placeholder="Type a message..."
             className="
               flex-1 px-4 py-2 rounded-full border border-gray-300
