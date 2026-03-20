@@ -1,20 +1,61 @@
 import React, { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
+import axios from "axios";
 
-const socket = io(import.meta.env.VITE_API_URL);
+const socket = io(import.meta.env.VITE_API_URL, {
+  auth: {
+    token: localStorage.getItem("token"),
+  },
+});
+
+const parseJwt = (token) => {
+  try {
+    return JSON.parse(atob(token.split('.')[1]));
+  } catch (e) {
+    return null;
+  }
+};
 
 const UserAdminChat = () => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
 
-  const conversationId = "chat_123";
-  const senderId = "user_1";
+  const [conversationId, setConversationId] = useState(null);
+  const [senderId, setSenderId] = useState(null);
 
   const bottomRef = useRef();
 
   useEffect(() => {
-    socket.emit("joinChat", conversationId);
+    const initChat = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+      
+      const decoded = parseJwt(token);
+      if (decoded && decoded.id) setSenderId(decoded.id);
+
+      try {
+        const res = await axios.post(
+          `${import.meta.env.VITE_API_URL}/conversation`,
+          { adminId: "admin_1" },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        const fetchedConversationId = res.data._id;
+        setConversationId(fetchedConversationId);
+
+        // Load previous messages
+        const msgRes = await axios.get(
+          `${import.meta.env.VITE_API_URL}/messages/${fetchedConversationId}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setMessages(msgRes.data);
+
+        socket.emit("joinChat", fetchedConversationId);
+      } catch (err) {
+        console.error("Error initializing chat", err);
+      }
+    };
+    initChat();
   }, []);
 
   useEffect(() => {
@@ -45,7 +86,7 @@ const UserAdminChat = () => {
   };
 
   const sendMessage = () => {
-    if (!input.trim()) return;
+    if (!input.trim() || !conversationId || !senderId) return;
 
     const msg = {
       conversationId,
@@ -59,7 +100,7 @@ const UserAdminChat = () => {
   };
 
   const handleTyping = () => {
-    socket.emit("typing", conversationId);
+    if (conversationId) socket.emit("typing", conversationId);
   };
 
   return (
