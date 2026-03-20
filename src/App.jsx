@@ -20,6 +20,7 @@ import Map from "./Map";
 import Products from "./products/Products";
 import ChatBot from "./dashboard/ChatBot";
 import UserAdminChat from "./dashboard/UserAdminChat";
+import AdminChat from "./dashboard/AdminChat"
 
 function App() {
   const [cart, setCart] = useState([]);
@@ -49,6 +50,7 @@ function App() {
         />
         <Route path="/UserAdminChat" element={<UserAdminChat></UserAdminChat>} />   
         <Route path="/dashboard" element={<Dashboard></Dashboard>} />
+        <Route path="/AdminChat" element={<AdminChat></AdminChat>}/>
         {/* <Route path="/ChatBot" element={<ChatBot />} /> */}
         <Route path="/" element={<UserIntro></UserIntro>} />
         <Route
