@@ -1,3 +1,63 @@
+# 🚀 Blinkit Frontend
+
+> Lightning-fast grocery delivery app frontend built with React, Vite, and Tailwind CSS
+
+A modern, responsive web application for Blinkit - India's fastest grocery delivery service. Built with cutting-edge technologies for optimal performance and user experience.
+
+**Live Demo:** [Blinkit Frontend](https://blinkit-frontend.vercel.app/)
+
+---
+
+## 🎯 Overview
+
+**Blinkit Frontend** is a full-featured React-based web application providing:
+- **Real-time Grocery Shopping** - Browse and order groceries instantly
+- **Live Order Tracking** - Track deliveries in real-time using WebSocket
+- **Interactive Maps** - View delivery location using Leaflet & Google Maps
+- **User Authentication** - Secure login and account management
+- **Cart Management** - Easy add/remove/update items
+- **Location-based Services** - Find nearby delivery zones
+- **Responsive Design** - Seamless experience on all devices
+- **Form Validation** - Robust input handling with React Hook Form
+- **Toast Notifications** - Real-time user feedback
+
+---
+
+## ✨ Key Features
+
+### 🛒 Shopping Experience
+- **Browse Products** - Explore wide range of groceries
+- **Smart Cart** - Add, remove, and update quantities
+- **Search & Filter** - Find products by category
+- **Wishlist** - Save favorites for later
+- **Quick Checkout** - Fast and secure payment process
+
+### 📍 Location & Delivery
+- **Live Tracking** - Real-time delivery status
+- **Interactive Maps** - View delivery location on map
+- **Address Management** - Save multiple delivery addresses
+- **Delivery Zone Check** - Verify delivery availability
+- **Distance Calculator** - Estimate delivery time
+
+### 👤 User Management
+- **User Accounts** - Create and manage profiles
+- **Order History** - View past orders and reorder
+- **Saved Addresses** - Quick address selection
+- **Payment Methods** - Multiple payment options
+- **Notifications** - Stay updated with order status
+
+### 🔄 Real-time Updates
+- **WebSocket Integration** - Live order status updates
+- **Order Notifications** - Instant delivery alerts
+- **Live Chat Support** - Connect with delivery partners
+- **Stock Updates** - Real-time product availability
+
+---
+
+## 📁 Project Structure
+
+
+
 # React + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
