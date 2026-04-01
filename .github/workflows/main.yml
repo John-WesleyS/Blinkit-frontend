@@ -3,8 +3,6 @@ name: Frontend CI (Blinkit)
 on:
   push:
     branches: ["main"]
-  pull_request:
-    branches: ["main"]
 
 jobs:
   frontend:
@@ -12,23 +10,18 @@ jobs:
 
     steps:
       # 1️⃣ Checkout code
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
       # 2️⃣ Setup Node
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: 18
 
       # 3️⃣ Install dependencies
-      - name: Install dependencies
-        run: npm install
+      - run: npm install
 
-      # 4️⃣ Build project (VERY IMPORTANT)
+      # 4️⃣ Build with ENV
       - name: Build frontend
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
         run: npm run build
-
-      # 5️⃣ Success message
-      - name: Done
-        run: echo "Frontend build successful 🚀"
