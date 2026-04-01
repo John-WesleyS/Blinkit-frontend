@@ -9,18 +9,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout code
+      # Checkout
       - uses: actions/checkout@v3
 
-      # 2️⃣ Setup Node
+      # ✅ Fix Node version
       - uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version: 20
 
-      # 3️⃣ Install dependencies
-      - run: npm install
+      # ✅ Clean install
+      - run: npm ci
 
-      # 4️⃣ Build with ENV
+      # ✅ Build with ENV
       - name: Build frontend
         env:
           VITE_API_URL: ${{ secrets.VITE_API_URL }}
