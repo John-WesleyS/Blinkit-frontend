@@ -9,11 +9,30 @@ const Products = ({ setCart }) => {
   const { category } = useParams();
   const [products, setProducts] = useState([]);
   const [qty, setQty] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchProducts = async () => {
-      const res = await axios.get(`${import.meta.env.VITE_API_URL}/AdminCart`);
-      setProducts(res.data);
+      try {
+        setLoading(true);
+        setError(null);
+        const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
+        console.log("Fetching products from:", `${apiUrl}/AdminCart`);
+        const res = await axios.get(`${apiUrl}/AdminCart`);
+        
+        if (Array.isArray(res.data)) {
+          setProducts(res.data);
+        } else {
+          console.error("API response is not an array:", res.data);
+          setError("Failed to load products: Invalid data format.");
+        }
+      } catch (err) {
+        console.error("Error fetching products:", err);
+        setError(err.message || "Failed to fetch products from backend.");
+      } finally {
+        setLoading(false);
+      }
     };
     fetchProducts();
   }, []);
@@ -30,7 +49,13 @@ const CartNotification = () => {
     });
   };
 
-  const normalize = (str) => str?.toLowerCase().replace(/\s+/g, "");
+  const normalize = (str) => {
+    if (!str) return "";
+    return str
+      .toLowerCase()
+      .replace(/&/g, "and") // Align '&' with UI routes ('and')
+      .replace(/[^a-z0-9]/g, ""); // Remove all spaces and non-alphanumeric chars
+  };
 
   const filteredProducts = products.filter(
     (item) => normalize(item.Category) === normalize(category),
@@ -80,88 +105,113 @@ const CartNotification = () => {
 
   return (<>
   <Header></Header>
-    <div style={{ padding: "30px" }}>
-      
+    <div style={{ padding: "30px", minHeight: "60vh" }}>
+      <h2 style={{ textAlign: "center", marginBottom: "20px", fontSize: "24px" }}>
+        Category: {category ? category.replace(/([A-Z])/g, ' $1').trim() : ""}
+      </h2>
 
-      <div
-        style={{
-          display: "flex",
-          gap: "20px",
-          flexWrap: "wrap",
-          justifyContent: "space-evenly",
-        }}
-      >
-        {filteredProducts.map((item) => (
-          <div
-            key={item._id}
-            style={{
-              width: "200px",
-              border: "1px solid #e0e0e0",
-              borderRadius: "8px",
-              padding: "15px",
-              textAlign: "center",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-              cursor: "pointer",
-              transition: "transform 0.2s, boxShadow 0.2s",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = "translateY(-5px)";
-              e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.15)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.1)";
-            }}
-          >
-            <img
-              src={item.imageUrl}
-              alt={item.name}
-              style={{
-                width: "100%",
-                height: "150px",
-                objectFit: "cover",
-                borderRadius: "6px",
-              }}
-            />
+      {loading && (
+        <div style={{ textAlign: "center", fontSize: "18px", padding: "40px" }}>
+          Loading products...
+        </div>
+      )}
 
-            <h3 style={{ margin: "10px 0 5px", fontSize: "16px" }}>
-              {item.name}
-            </h3>
+      {error && (
+        <div style={{ textAlign: "center", color: "red", fontSize: "18px", padding: "40px" }}>
+          <p>⚠️ Error: {error}</p>
+          <p style={{ fontSize: "14px", color: "#666", marginTop: "10px" }}>
+            Make sure your backend server is running and your network connection is online.
+          </p>
+        </div>
+      )}
 
-            <p style={{ color: "#666", fontSize: "14px" }}>₹{item.price}</p>
+      {!loading && !error && filteredProducts.length === 0 && (
+        <div style={{ textAlign: "center", fontSize: "18px", padding: "40px", color: "#666" }}>
+          No products found in this category.
+        </div>
+      )}
 
-            {/* Quantity Controls */}
+      {!loading && !error && filteredProducts.length > 0 && (
+        <div
+          style={{
+            display: "flex",
+            gap: "20px",
+            flexWrap: "wrap",
+            justifyContent: "space-evenly",
+          }}
+        >
+          {filteredProducts.map((item) => (
             <div
+              key={item._id}
               style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "6px",
-                marginTop: "10px",
+                width: "200px",
+                border: "1px solid #e0e0e0",
+                borderRadius: "8px",
+                padding: "15px",
+                textAlign: "center",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                cursor: "pointer",
+                transition: "transform 0.2s, boxShadow 0.2s",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-5px)";
+                e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.15)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.1)";
               }}
             >
-              <button onClick={() => decreaseQty(item._id)}>−</button>
-
-              <span>{qty[item._id] || 0}</span>
-
-              <button onClick={() => increaseQty(item._id)}>+</button>
-
-              <button
-                onClick={() => addToCart(item)}
+              <img
+                src={item.imageUrl}
+                alt={item.name}
                 style={{
-                  flex: 1,
-                  padding: "8px",
-                  backgroundColor: "#52B788",
-                  color: "white",
-                  border: "none",
+                  width: "100%",
+                  height: "150px",
+                  objectFit: "cover",
                   borderRadius: "6px",
                 }}
+              />
+
+              <h3 style={{ margin: "10px 0 5px", fontSize: "16px" }}>
+                {item.name}
+              </h3>
+
+              <p style={{ color: "#666", fontSize: "14px" }}>₹{item.price}</p>
+
+              {/* Quantity Controls */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  marginTop: "10px",
+                }}
               >
-                Add
-              </button>
+                <button onClick={() => decreaseQty(item._id)}>−</button>
+
+                <span>{qty[item._id] || 0}</span>
+
+                <button onClick={() => increaseQty(item._id)}>+</button>
+
+                <button
+                  onClick={() => addToCart(item)}
+                  style={{
+                    flex: 1,
+                    padding: "8px",
+                    backgroundColor: "#52B788",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "6px",
+                  }}
+                >
+                  Add
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
     <Footer></Footer>
     </>
