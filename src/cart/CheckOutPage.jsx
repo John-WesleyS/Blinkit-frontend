@@ -134,7 +134,7 @@ export default function CheckOutPage({ cart = [], productDetails = {} }) {
           justifyContent: "space-between",
         }}
       >
-        <NavLink to="/Body" style={{ flex: 1 }}>
+        <NavLink to="/home" style={{ flex: 1 }}>
           <button
             style={{
               width: "100%",

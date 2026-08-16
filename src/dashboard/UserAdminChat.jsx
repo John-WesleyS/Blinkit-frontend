@@ -2,12 +2,6 @@ import React, { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import axios from "axios";
 
-const socket = io(import.meta.env.VITE_API_URL, {
-  auth: {
-    token: localStorage.getItem("token"),
-  },
-});
-
 const parseJwt = (token) => {
   try {
     return JSON.parse(atob(token.split('.')[1]));
@@ -25,18 +19,25 @@ const UserAdminChat = () => {
   const [senderId, setSenderId] = useState(null);
 
   const bottomRef = useRef();
+  const socketRef = useRef(null);
 
   useEffect(() => {
-    const initChat = async () => {
-      const token = localStorage.getItem("token");
-      if (!token) return;
-      
-      const decoded = parseJwt(token);
-      if (decoded && decoded.id) setSenderId(decoded.id);
+    const token = localStorage.getItem("token");
+    if (!token) return;
 
+    const decoded = parseJwt(token);
+    if (decoded && decoded.id) setSenderId(decoded.id);
+
+    // Dynamic socket connection with active JWT token
+    const socketInstance = io(import.meta.env.VITE_API_URL || "http://localhost:3000", {
+      auth: { token },
+    });
+    socketRef.current = socketInstance;
+
+    const initChat = async () => {
       try {
         const res = await axios.post(
-          `${import.meta.env.VITE_API_URL}/conversation`,
+          `${import.meta.env.VITE_API_URL || "http://localhost:3000"}/conversation`,
           { adminId: "admin_1" },
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -45,32 +46,30 @@ const UserAdminChat = () => {
 
         // Load previous messages
         const msgRes = await axios.get(
-          `${import.meta.env.VITE_API_URL}/messages/${fetchedConversationId}`,
+          `${import.meta.env.VITE_API_URL || "http://localhost:3000"}/messages/${fetchedConversationId}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setMessages(msgRes.data);
 
-        socket.emit("joinChat", fetchedConversationId);
+        socketInstance.emit("joinChat", fetchedConversationId);
       } catch (err) {
         console.error("Error initializing chat", err);
       }
     };
     initChat();
-  }, []);
 
-  useEffect(() => {
-    socket.on("receiveMessage", (msg) => {
+    // Listeners
+    socketInstance.on("receiveMessage", (msg) => {
       setMessages((prev) => [...prev, msg]);
     });
 
-    socket.on("typing", () => {
+    socketInstance.on("typing", () => {
       setTyping(true);
       setTimeout(() => setTyping(false), 2000);
     });
 
     return () => {
-      socket.off("receiveMessage");
-      socket.off("typing");
+      socketInstance.disconnect();
     };
   }, []);
 
@@ -94,13 +93,12 @@ const UserAdminChat = () => {
       message: input,
     };
 
-    socket.emit("sendMessage", msg);
-    // setMessages((prev) => [...prev, msg]);
+    socketRef.current?.emit("sendMessage", msg);
     setInput("");
   };
 
   const handleTyping = () => {
-    if (conversationId) socket.emit("typing", conversationId);
+    if (conversationId) socketRef.current?.emit("typing", conversationId);
   };
 
   return (

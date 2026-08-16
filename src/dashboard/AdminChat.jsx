@@ -2,12 +2,6 @@ import React, { useEffect, useState, useRef } from "react";
 import { io } from "socket.io-client";
 import axios from "axios";
 
-const socket = io(import.meta.env.VITE_API_URL, {
-  auth: {
-    token: localStorage.getItem("token"),
-  },
-});
-
 const parseJwt = (token) => {
   try {
     return JSON.parse(atob(token.split(".")[1]));
@@ -21,33 +15,50 @@ const AdminChat = () => {
   const [selectedChat, setSelectedChat] = useState(null);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
-  // const [adminId, setAdminId] = useState(null);
+  const [adminId, setAdminId] = useState(null);
 
   const bottomRef = useRef();
+  const socketRef = useRef(null);
 
-  // 🔹 Get admin ID
-  const [adminId] = useState(() => {
-  const token = localStorage.getItem("token");
-  if (!token) return null;
+  const getAdminToken = () => localStorage.getItem("adminToken") || localStorage.getItem("token");
 
-  const decoded = parseJwt(token);
-  return decoded?.id || null;
-});
+  // 🔹 Connect socket on mount/login
+  useEffect(() => {
+    const token = getAdminToken();
+    if (!token) return;
+
+    const decoded = parseJwt(token);
+    if (decoded && decoded.id) setAdminId(decoded.id);
+
+    const socketInstance = io(import.meta.env.VITE_API_URL || "http://localhost:3000", {
+      auth: { token },
+    });
+    socketRef.current = socketInstance;
+
+    return () => {
+      socketInstance.disconnect();
+    };
+  }, []);
 
   // 🔹 Fetch all conversations
   useEffect(() => {
     const fetchChats = async () => {
-      const token = localStorage.getItem("token");
+      const token = getAdminToken();
+      if (!token) return;
       try {
         const res = await axios.get(
-          `${import.meta.env.VITE_API_URL}/conversations`,
+          `${import.meta.env.VITE_API_URL || "http://localhost:3000"}/conversations`,
           {
-            headers: { Authorization: `Bearer ${token}` },
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
           }
         );
         setConversations(res.data);
       } catch (err) {
         console.error("Failed to load chats:", err);
+        console.error("Status:", err.response?.status);
+        console.error("Response:", err.response?.data);
       }
     };
     fetchChats();
@@ -57,13 +68,13 @@ const AdminChat = () => {
   useEffect(() => {
     if (!selectedChat) return;
 
-    socket.emit("joinChat", selectedChat._id);
+    socketRef.current?.emit("joinChat", selectedChat._id);
 
-    const token = localStorage.getItem("token");
+    const token = getAdminToken();
 
     axios
       .get(
-        `${import.meta.env.VITE_API_URL}/messages/${selectedChat._id}`,
+        `${import.meta.env.VITE_API_URL || "http://localhost:3000"}/messages/${selectedChat._id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       )
       .then((res) => setMessages(res.data))
@@ -72,7 +83,9 @@ const AdminChat = () => {
 
   // 🔹 Receive messages
   useEffect(() => {
-    socket.on("receiveMessage", (msg) => {
+    if (!socketRef.current) return;
+
+    const handleReceiveMessage = (msg) => {
       // Update active chat
       if (msg.conversationId === selectedChat?._id) {
         setMessages((prev) => [...prev, msg]);
@@ -86,9 +99,13 @@ const AdminChat = () => {
             : conv
         )
       );
-    });
+    };
 
-    return () => socket.off("receiveMessage");
+    socketRef.current.on("receiveMessage", handleReceiveMessage);
+
+    return () => {
+      socketRef.current?.off("receiveMessage", handleReceiveMessage);
+    };
   }, [selectedChat]);
 
   // 🔹 Auto scroll
@@ -100,7 +117,7 @@ const AdminChat = () => {
   const sendMessage = () => {
     if (!input.trim() || !selectedChat) return;
 
-    socket.emit("sendMessage", {
+    socketRef.current?.emit("sendMessage", {
       conversationId: selectedChat._id,
       message: input,
     });
@@ -138,11 +155,10 @@ const AdminChat = () => {
             <div
               key={chat._id}
               onClick={() => setSelectedChat(chat)}
-              className={`p-4 cursor-pointer border-b transition ${
-                selectedChat?._id === chat._id
-                  ? "bg-blue-100"
-                  : "hover:bg-gray-100"
-              }`}
+              className={`p-4 cursor-pointer border-b transition ${selectedChat?._id === chat._id
+                ? "bg-blue-100"
+                : "hover:bg-gray-100"
+                }`}
             >
               <p className="font-semibold text-gray-800">
                 User: {userId}
@@ -189,16 +205,14 @@ const AdminChat = () => {
                 return (
                   <div
                     key={i}
-                    className={`flex ${
-                      isAdmin ? "justify-end" : "justify-start"
-                    }`}
+                    className={`flex ${isAdmin ? "justify-end" : "justify-start"
+                      }`}
                   >
                     <div
-                      className={`px-4 py-2 rounded-2xl max-w-xs shadow ${
-                        isAdmin
-                          ? "bg-blue-500 text-white rounded-br-none"
-                          : "bg-gray-200 text-gray-800 rounded-bl-none"
-                      }`}
+                      className={`px-4 py-2 rounded-2xl max-w-xs shadow ${isAdmin
+                        ? "bg-blue-500 text-white rounded-br-none"
+                        : "bg-gray-200 text-gray-800 rounded-bl-none"
+                        }`}
                     >
                       {msg.message}
                     </div>
